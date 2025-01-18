@@ -53,7 +53,7 @@ export default function SignUpScreen() {
           method: "POST",
           body: JSON.stringify({
             name,
-            emailAddress,
+            email: emailAddress,
             clerkId: signUpAttempt.createdUserId,
           }),
         });
