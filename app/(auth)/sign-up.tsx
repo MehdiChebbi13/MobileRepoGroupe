@@ -49,7 +49,7 @@ export default function SignUpScreen() {
       });
 
       if (signUpAttempt.status === "complete") {
-        await fetchAPI("/(api)/user", {
+        await fetch("/(api)/user", {
           method: "POST",
           body: JSON.stringify({
             name,
