@@ -1,6 +1,7 @@
 import { View, Text, ScrollView, Image } from "react-native";
 import React from "react";
 import { icons } from "@/constants/icons";
+import { images } from "@/constants/images";
 import InputField from "@/components/InputField";
 import CustomButton from "@/components/CustomButton";
 import { Link, useRouter } from "expo-router";
@@ -44,6 +45,13 @@ const SignIn = () => {
     <ScrollView className="flex-1 bg-white">
       <View className="flex-1 bg-white">
         <View className="relative w-full h-[250px]">
+          <View className="flex items-center justify-center mt-10">
+            <Image
+              source={require("@/assets/images/the_tiny_dragon.jpg")}
+              className="w-20 h-20"
+            />
+          </View>
+
           <Text className="text-2xl text-black font-JakartaSemiBold absolute bottom-5 left-5">
             Welcome 👋
           </Text>

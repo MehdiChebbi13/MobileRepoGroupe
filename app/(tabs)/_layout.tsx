@@ -1,12 +1,24 @@
-import { View, Text } from "react-native";
-import React from "react";
+import { createStackNavigator } from "@react-navigation/stack";
+import Home from "../(tabs)/home";
+import BookDetail from "../(tabs)/bookDetail";
 
-const _layout = () => {
+const Stack = createStackNavigator();
+
+const App = () => {
   return (
-    <View>
-      <Text>_layout</Text>
-    </View>
+    <Stack.Navigator initialRouteName="Home">
+      <Stack.Screen
+        name="Home"
+        component={Home}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="BookDetail"
+        component={BookDetail}
+        options={{ headerShown: false }}
+      />
+    </Stack.Navigator>
   );
 };
 
-export default _layout;
+export default App;
