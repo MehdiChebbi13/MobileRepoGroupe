@@ -15,7 +15,6 @@ import { useRouter } from "expo-router";
 export default function SignInScreen() {
   const { signIn, setActive, isLoaded } = useSignIn();
   const router = useRouter();
-
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -24,6 +23,7 @@ export default function SignInScreen() {
     if (!isLoaded) return;
 
     try {
+
       const signInAttempt = await signIn.create({
         identifier: emailAddress,
         password,
