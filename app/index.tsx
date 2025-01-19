@@ -4,9 +4,8 @@ import "../global.css";
 const Home = () => {
   const { isSignedIn } = useAuth();
 
-  /*   if (isSignedIn) {
-  
-    return <Redirect href="/(tabs)" />;
+  /*  if (isSignedIn) {
+    return <Redirect href="/(tabs)/home" />;
   } */
   return <Redirect href="/(tabs)/home" />;
   /* return <Redirect href="./(auth)/sign-in" />; */

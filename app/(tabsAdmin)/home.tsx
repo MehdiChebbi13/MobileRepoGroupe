@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   SafeAreaView,
   View,
@@ -9,15 +9,17 @@ import {
   FlatList,
   StyleSheet,
 } from "react-native";
+import { fetchAPI } from "@/lib/fetch";
+import { useEffect } from "react";
 
 import { COLORS, FONTS, SIZES } from "../../constants/theme";
-import { images } from "../../constants/images";
+
 import { icons } from "../../constants/icons";
-import { router } from "expo-router";
+
 import { myBooksData, categoriesData } from "@/data/dummy";
 import { Book, Profile } from "@/types/book";
 import BookCard from "@/components/BookCard";
-import { fetchAPI } from "@/lib/fetch";
+import PendingCard from "@/components/PendingCard";
 
 function calculateReadingTime(pageCount: number): string {
   const WORDS_PER_PAGE = 250;
@@ -35,6 +37,27 @@ function calculateReadingTime(pageCount: number): string {
   return `${hours}h`;
 }
 
+type BorrowStatus = "Borrowed" | "Pending" | "Refused";
+export interface PendingBook {
+  id: number;
+  user_id: number;
+  book_id: number;
+  book_cover: string;
+  book_name: string;
+  author: string;
+  page_no: number;
+  borrow_time: Date | string;
+  return_time: Date | string | null;
+  status: BorrowStatus;
+  created_at: Date | string;
+}
+type Myrequest = {
+  id: number;
+  user_id: number;
+  book_id: number;
+  book_cover: string;
+  book_name: string;
+};
 type MyBook = Book & {
   completion: string;
   lastRead: string;
@@ -61,12 +84,13 @@ const LineDivider: React.FC = () => {
 
 const Home: React.FC<HomeProps> = ({ navigation }) => {
   const profileData: Profile = {
-    name: "Username",
+    name: "Admin",
     point: 200,
   };
 
   const [profile, setProfile] = useState<Profile>(profileData);
   const [myBooks, setMyBooks] = useState<MyBook[]>(myBooksData);
+  const [pendingRequests, setPendingRequests] = useState<Myrequest[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -84,31 +108,45 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
       }
     };
 
+    /* const fetchPendingRequests = async () => {
+      setLoading(true);
+      try {
+        const data = await fetchAPI("/(api)/booking/pending");
+        setPendingRequests(data.data as Myrequest[]);
+      } catch (err: any) {
+        console.error("Error fetching pending requests:", err.message);
+        setError("Unable to load pending requests. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPendingRequests(); */
     fetchBooks();
   }, []);
-
   const renderHeader = (profile: Profile) => (
     <View style={styles.headerContainer}>
       <View style={styles.headerTextContainer}>
         <Text style={styles.greetingText}>Good Morning</Text>
         <Text style={styles.profileName} className="text-[#F96D41]">
-          {profile.name}
+          Admin
         </Text>
       </View>
 
       <TouchableOpacity
         style={styles.pointButton}
-        onPress={() => console.log("Point")}
+        onPress={() =>
+          navigation.navigate("addBook", {
+            onAdd: (book: MyBook) => {
+              setMyBooks([...myBooks, book]);
+            },
+          })
+        }
       >
-        <View className="flex-row items-center justify-center py-2 px-2 ">
-          <View className="size-[27px]  rounded-3xl bg-[#00000080] flex items-center justify-center">
-            <Image
-              source={icons.person}
-              style={styles.pointIcon}
-              tintColor={"white"}
-              className="p-2"
-            />
+        <View className="flex-row items-center justify-center py-2 px-3 ">
+          <View className="size-[27px] rounded-3xl bg-[#00000080] flex items-center justify-center">
+            <Image source={icons.plus_icon} style={styles.pointIcon} />
           </View>
+          <Text style={styles.pointText}>Add book</Text>
         </View>
       </TouchableOpacity>
     </View>
@@ -169,7 +207,7 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
           showsHorizontalScrollIndicator={false}
         />
         <View style={styles.myBookHeader} className="mt-8 py-[12px]">
-          <Text style={styles.myBookTitle}>Books Borrowed</Text>
+          <Text style={styles.myBookTitle}>Pending requests</Text>
           <TouchableOpacity onPress={() => console.log("See More")}>
             <Text style={styles.seeMore}>refresh</Text>
           </TouchableOpacity>
@@ -184,16 +222,10 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
     );
   };
 
-  /* if (error) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <Text style={{ color: COLORS.white }}>{`Error: ${error}`}</Text>
-      </SafeAreaView>
-    );
-  } */
-
   return (
     <SafeAreaView style={styles.container}>
+      {/* <View className="mt-4">{renderHeader(profile)}</View>
+      <ScrollView>{renderMyBookSection(myBooks)}</ScrollView> */}
       <FlatList
         ListHeaderComponent={
           <View className="mt-4">{renderHeader(profile)}</View>
@@ -253,6 +285,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     paddingHorizontal: 24,
+    paddingVertical: 10,
   },
   myBookTitle: { ...FONTS.h2, color: COLORS.white },
   seeMore: {
@@ -260,6 +293,14 @@ const styles = StyleSheet.create({
     color: COLORS.lightGray,
     textDecorationLine: "underline",
   },
+  lastAddedBooksHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    marginTop: 20,
+  },
+  lastAddedBooksTitle: { ...FONTS.h2, color: COLORS.white },
 });
 
 export default Home;

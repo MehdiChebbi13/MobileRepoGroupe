@@ -1,13 +1,13 @@
 export type Book = {
     id: number;
-    bookName: string;
+    book_name: string;
     book_cover: any;
-    publishedYear: number;
+    published_year: number;
     language: string;
-    pageNo: number;
+    page_no: number;
     author: string;
     description: string;
-    createdAt: date;
+    created_at: date;
     
   };
   

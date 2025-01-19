@@ -36,16 +36,21 @@ const formatDate = (date: string | Date): string => {
   });
 };
 export interface Book {
+  id: number;
+  user_id: number;
+  book_id: number;
   book_cover: string;
   book_name: string;
   author: string;
   page_no: number;
   borrow_time: Date | string;
+  return_time: Date | string | null;
   status: BorrowStatus;
-  return_time: Date | string;
+  created_at: Date | string;
 }
 
-const BookCard: React.FC<Book> = ({
+const PendingCard: React.FC<Book> = ({
+  user_id,
   book_cover,
   book_name,
   author,
@@ -53,9 +58,6 @@ const BookCard: React.FC<Book> = ({
   borrow_time,
   status,
   return_time,
-
-  /* borrowTime,
-  status, */
 }) => {
   return (
     <TouchableOpacity
@@ -91,12 +93,12 @@ const BookCard: React.FC<Book> = ({
           </View>
         </View>
         <View>
-          <Text className="text-[12px] text-[#F96D41] opacity-70">From:</Text>
-          <Text style={styles.borrowTime}>{formatDate(borrow_time)}</Text>
           <View className="flex-row items-center justify-between">
             <View>
-              <Text className="text-[12px] text-[#F96D41] opacity-70">To:</Text>
-              <Text style={styles.borrowTime}>{formatDate(return_time)}</Text>
+              <Text className="text-[12px] text-[#F96D41] opacity-70">
+                user_id:
+              </Text>
+              <Text style={styles.borrowTime}>{user_id}</Text>
             </View>
             <View
               style={styles.pageInfo}
@@ -194,4 +196,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BookCard;
+export default PendingCard;

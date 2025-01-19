@@ -9,6 +9,7 @@ import { useSignUp } from "@clerk/clerk-expo";
 import ReactNativeModal from "react-native-modal";
 import { useUser } from "@clerk/clerk-expo"; // Corrected Import
 import { TouchableOpacity } from "react-native";
+import { fetchAPI } from "@/lib/fetch";
 
 const SignUp = () => {
   const { user } = useUser();
@@ -20,7 +21,6 @@ const SignUp = () => {
     name: "",
     email: "",
     password: "",
-    role: "",
   });
   const [verification, setVerification] = useState({
     state: "default",
@@ -35,14 +35,14 @@ const SignUp = () => {
   }, [user, verification.state]);
 
   const registerUserInBackend = async () => {
-    const userData = {
-      name: form.name,
-      email: form.email,
-      role: form.role,
+    // const userData = {
+    //   name: form.name,
+    //   email: form.email,
+    //   role: form.role,
 
-      // Add any other fields you need
-    };
-    console.log("User data:", JSON.stringify(userData));
+    //   // Add any other fields you need
+    // };
+    //console.log("User data:", JSON.stringify(userData));
 
     try {
       setVerification({ ...verification, state: "success" });
@@ -111,6 +111,14 @@ const SignUp = () => {
       console.log("Email verification attempt:", signUpAttempt);
 
       if (signUpAttempt.status === "complete") {
+        await fetchAPI("/(api)/user", {
+          method: "POST",
+          body: JSON.stringify({
+            name: form.name,
+            email: form.email,
+            clerkId: signUpAttempt.createdUserId,
+          }),
+        });
         console.log("Email verified successfully. Setting session active...");
         await setActive({ session: signUpAttempt.createdSessionId });
         console.log("Session set to active.");
@@ -182,30 +190,6 @@ const SignUp = () => {
             value={form.password}
             onChangeText={(value) => setForm({ ...form, password: value })}
           />
-          <View className="flex-row items-center justify-around mt-4 mb-2">
-            <View className="flex-row items-center">
-              <TouchableOpacity
-                onPress={() => setForm({ ...form, role: "PASSENGER" })}
-                className="w-6 h-6 border-2 rounded-full border-primary-500 mr-2 flex items-center justify-center"
-              >
-                {form.role === "PASSENGER" && (
-                  <View className="w-3 h-3 bg-primary-500 rounded-full" />
-                )}
-              </TouchableOpacity>
-              <Text>Passenger</Text>
-            </View>
-            <View className="flex-row items-center">
-              <TouchableOpacity
-                onPress={() => setForm({ ...form, role: "DRIVER" })}
-                className="w-6 h-6 border-2 rounded-full border-primary-500 mr-2 flex items-center justify-center"
-              >
-                {form.role === "DRIVER" && (
-                  <View className="w-3 h-3 bg-primary-500 rounded-full" />
-                )}
-              </TouchableOpacity>
-              <Text>Driver</Text>
-            </View>
-          </View>
           <CustomButton
             title="Sign Up"
             onPress={onSignUpPress}
