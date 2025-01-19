@@ -3,7 +3,7 @@ import { images } from "../constants/images";
 const bookOtherWordsForHome: Book = {
     id: 1,
     bookName: "Other Words For Home",
-    bookCover: images.otherWordsForHome,
+    bookCover: "https://tse4.mm.bing.net/th?id=OIP.2MUvap2iUeVdPVEKR1KTTwHaLg&pid=Api",
     publishedYear: 2010,
     language: "Eng",
     pageNo: 341,

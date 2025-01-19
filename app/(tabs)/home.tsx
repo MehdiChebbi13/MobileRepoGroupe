@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   SafeAreaView,
   View,
@@ -16,6 +16,8 @@ import { icons } from "../../constants/icons";
 import { router } from "expo-router";
 import { myBooksData, categoriesData } from "@/data/dummy";
 import { Book, Profile } from "@/types/book";
+import BookCard from "@/components/BookCard";
+import { fetchAPI } from "@/lib/fetch";
 
 function calculateReadingTime(pageCount: number): string {
   const WORDS_PER_PAGE = 250;
@@ -65,8 +67,18 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
 
   const [profile, setProfile] = useState<Profile>(profileData);
   const [myBooks, setMyBooks] = useState<MyBook[]>(myBooksData);
-  const [categories, setCategories] = useState<Category[]>(categoriesData);
-  const [selectedCategory, setSelectedCategory] = useState<number>(1);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchAPI("/(api)/book", { method: "GET" })
+      .then((data) => {
+        setMyBooks(data);
+        console.log("this is nourrr");
+      })
+      .catch((error) => {
+        setError(error.message);
+      });
+  }, []);
 
   const renderHeader = (profile: Profile) => (
     <View style={styles.headerContainer}>
@@ -108,7 +120,7 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
         }
       >
         <Image
-          source={item.bookCover}
+          source={{ uri: item.book_cover }}
           style={styles.bookCover}
           resizeMode="cover"
         />
@@ -126,9 +138,17 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
       </TouchableOpacity>
     );
 
+    const renderItemBorrowed = ({
+      item,
+      index,
+    }: {
+      item: MyBook;
+      index: number;
+    }) => <BookCard key={item.id} {...item} />;
+
     return (
       <View style={{ flex: 1 }}>
-        <View style={styles.myBookHeader}>
+        <View style={styles.myBookHeader} className="py-[12px]">
           <Text style={styles.myBookTitle}>Books Available</Text>
           <TouchableOpacity onPress={() => console.log("See More")}>
             <Text style={styles.seeMore}>refresh</Text>
@@ -141,14 +161,43 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
           horizontal
           showsHorizontalScrollIndicator={false}
         />
+        <View style={styles.myBookHeader} className="mt-8 py-[12px]">
+          <Text style={styles.myBookTitle}>Books Borrowed</Text>
+          <TouchableOpacity onPress={() => console.log("See More")}>
+            <Text style={styles.seeMore}>refresh</Text>
+          </TouchableOpacity>
+        </View>
+        <FlatList
+          data={myBooks}
+          renderItem={renderItemBorrowed}
+          keyExtractor={(item) => `${item.id}`}
+          showsVerticalScrollIndicator={false}
+        />
       </View>
     );
   };
 
+  /* if (error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={{ color: COLORS.white }}>{`Error: ${error}`}</Text>
+      </SafeAreaView>
+    );
+  } */
+
   return (
     <SafeAreaView style={styles.container}>
-      <View className="mt-4">{renderHeader(profile)}</View>
-      <ScrollView>{renderMyBookSection(myBooks)}</ScrollView>
+      {/* <View className="mt-4">{renderHeader(profile)}</View>
+      <ScrollView>{renderMyBookSection(myBooks)}</ScrollView> */}
+      <FlatList
+        ListHeaderComponent={
+          <View className="mt-4">{renderHeader(profile)}</View>
+        }
+        data={[{ key: "MyBooksSection" }]} // Dummy data for FlatList
+        renderItem={() => renderMyBookSection(myBooks)}
+        keyExtractor={(item, index) => `section-${index}`}
+        showsVerticalScrollIndicator={false}
+      />
     </SafeAreaView>
   );
 };
@@ -199,7 +248,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     paddingHorizontal: 24,
-    paddingVertical: 10,
   },
   myBookTitle: { ...FONTS.h2, color: COLORS.white },
   seeMore: {

@@ -1,7 +1,7 @@
 export type Book = {
     id: number;
     bookName: string;
-    bookCover: any;
+    book_cover: any;
     publishedYear: number;
     language: string;
     pageNo: number;
