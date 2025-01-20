@@ -5,17 +5,12 @@ import {
   Text,
   TouchableOpacity,
   Image,
-  ScrollView,
   FlatList,
   StyleSheet,
 } from "react-native";
 
 import { COLORS, FONTS, SIZES } from "../../constants/theme";
-import { images } from "../../constants/images";
-import { icons } from "../../constants/icons";
-import { router } from "expo-router";
-import { myBooksData, categoriesData } from "@/data/dummy";
-import { Book, Profile } from "@/types/book";
+import { Profile } from "@/types/book";
 import BookCard from "@/components/BookCard";
 import { fetchAPI } from "@/lib/fetch";
 
@@ -34,16 +29,16 @@ function calculateReadingTime(pageCount: number): string {
   }
   return `${hours}h`;
 }
-
-type MyBook = Book & {
-  completion: string;
-  lastRead: string;
-};
-
-type Category = {
+type BorrowStatus = "Borrowed" | "Pending" | "Refused";
+type MyBook = {
   id: number;
-  categoryName: string;
-  books: Book[];
+  book_cover: string;
+  book_name: string;
+  author: string;
+  page_no: number;
+  borrow_time: Date | string;
+  status: BorrowStatus;
+  return_time: Date | string;
 };
 
 type HomeProps = {
@@ -66,7 +61,7 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
   };
 
   const [profile, setProfile] = useState<Profile>(profileData);
-  const [myBooks, setMyBooks] = useState<MyBook[]>(myBooksData);
+  const [myBooks, setMyBooks] = useState<MyBook[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -103,7 +98,7 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
         <View className="flex-row items-center justify-center py-2 px-2 ">
           <View className="size-[27px]  rounded-3xl bg-[#00000080] flex items-center justify-center">
             <Image
-              source={icons.person}
+              source={require("../../assets/icons/person.png")}
               style={styles.pointIcon}
               tintColor={"white"}
               className="p-2"
@@ -136,12 +131,15 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
           resizeMode="cover"
         />
         <View style={styles.bookInfo}>
-          <Image source={icons.clock_icon} style={styles.icon} />
+          <Image
+            source={require("../../assets/icons/clock_icon.png")}
+            style={styles.icon}
+          />
           <Text style={styles.iconText}>
             {calculateReadingTime(item.page_no)}
           </Text>
           <Image
-            source={icons.page_icon}
+            source={require("../../assets/icons/page_icon.png")}
             style={[styles.icon, styles.iconPad]}
           />
           <Text style={styles.iconText}>{item.page_no}</Text>
@@ -169,7 +167,9 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
           showsHorizontalScrollIndicator={false}
         />
         <View style={styles.myBookHeader} className="mt-8 py-[12px]">
-          <Text style={styles.myBookTitle}>Books Borrowed</Text>
+          <Text style={styles.myBookTitle}>
+            Books <Text className="text-[#F96D41]">Borrowed</Text>
+          </Text>
           <TouchableOpacity onPress={() => console.log("See More")}>
             <Text style={styles.seeMore}>refresh</Text>
           </TouchableOpacity>
@@ -183,14 +183,6 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
       </View>
     );
   };
-
-  /* if (error) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <Text style={{ color: COLORS.white }}>{`Error: ${error}`}</Text>
-      </SafeAreaView>
-    );
-  } */
 
   return (
     <SafeAreaView style={styles.container}>

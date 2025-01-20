@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { ImageBackground } from "react-native";
 import { Book } from "@/types/book";
+import { useUser } from "@clerk/clerk-expo";
 
 type BookDetailProps = {
   route: {
@@ -33,6 +34,8 @@ type BookDetailProps = {
 
 const BookDetail: React.FC<BookDetailProps> = ({ route, navigation }) => {
   const [book, setBook] = useState<Book | null>(null);
+  const { user } = useUser();
+  console.log(user?.id);
 
   useEffect(() => {
     const { book } = route.params;

@@ -9,33 +9,34 @@ import {
 } from "react-native";
 import { ImageBackground } from "react-native";
 import { Book } from "@/types/book";
+import { StackScreenProps } from "@react-navigation/stack";
 
-type BookDetailProps = {
+type RootStackParamList = {
+  Home: undefined;
+  BookDetail: { bookId: string };
+  addBook: undefined;
+  editBook: { bookId: string };
+};
+
+type BookDetailProps = StackScreenProps<RootStackParamList, "BookDetail">;
+
+/* type BookDetailProps = {
   route: {
     params: {
       book: Book;
     };
   };
   navigation: any;
-};
+}; */
 
-// type Book = {
-//   id: number;
-//   bookName: string;
-//   bookCover: any;
-//   publishedYear: number;
-//   language: string;
-//   pageNo: number;
-//   author: string;
-//   description: string;
-//   backgroundColor: string;
-// };
-
-const BookDetail: React.FC<BookDetailProps> = ({ route, navigation }) => {
+const BookDetail: React.FC<BookDetailProps> = ({
+  route,
+  navigation,
+}: BookDetailProps) => {
   const [book, setBook] = useState<Book | null>(null);
 
   useEffect(() => {
-    const { book } = route.params;
+    const { book }: any = route.params;
     setBook(book);
   }, [route.params]);
 

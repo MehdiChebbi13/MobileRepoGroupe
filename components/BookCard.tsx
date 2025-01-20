@@ -36,6 +36,7 @@ const formatDate = (date: string | Date): string => {
   });
 };
 export interface Book {
+  id: number;
   book_cover: string;
   book_name: string;
   author: string;
@@ -103,7 +104,7 @@ const BookCard: React.FC<Book> = ({
               className="flex-row items-center gap-2"
             >
               <Image
-                source={icons.page_icon}
+                source={require("../assets/icons/page_icon.png")}
                 className="size-5 opacity-70"
                 tintColor={"white"}
               />

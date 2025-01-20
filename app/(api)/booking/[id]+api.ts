@@ -79,7 +79,11 @@ export async function PUT(request: Request, { id }: { id: string }) {
     const sql = neon(`${process.env.DATABASE_URL}`);
     const response = await sql`
       UPDATE book_borrowing
-      SET status = ${status}
+      SET status = ${status},
+        borrow_time = CASE 
+        WHEN ${status} = 'Borrowed' THEN CURRENT_TIMESTAMP
+        ELSE borrow_time
+        END
       WHERE id = ${id} AND status = 'Pending'
       RETURNING *;
     `;

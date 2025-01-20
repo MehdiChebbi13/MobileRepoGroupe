@@ -15,6 +15,7 @@ import { useEffect } from "react";
 import { COLORS, FONTS, SIZES } from "../../constants/theme";
 
 import { icons } from "../../constants/icons";
+import { images } from "../../constants/images";
 
 import { myBooksData, categoriesData } from "@/data/dummy";
 import { Book, Profile } from "@/types/book";
@@ -38,22 +39,11 @@ function calculateReadingTime(pageCount: number): string {
   return `${hours}h`;
 }
 
-type BorrowStatus = "Borrowed" | "Pending" | "Refused";
-export interface PendingBook {
-  id: number;
-  user_id: number;
-  book_id: number;
-  book_cover: string;
-  book_name: string;
-  author: string;
-  page_no: number;
-  borrow_time: Date | string;
-  return_time: Date | string | null;
-  status: BorrowStatus;
-  created_at: Date | string;
-}
 type Myrequest = {
   id: number;
+  page_no: number;
+  borrow_time: Date | string;
+  author: string;
   user_id: number;
   book_id: number;
   book_cover: string;
@@ -150,7 +140,10 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
       >
         <View className="flex-row items-center justify-center py-2 px-3 ">
           <View className="size-[27px] rounded-3xl bg-[#00000080] flex items-center justify-center">
-            <Image source={icons.plus_icon} style={styles.pointIcon} />
+            <Image
+              source={require("../../assets/icons/plus_icon.png")}
+              style={styles.pointIcon}
+            />
           </View>
           <Text style={styles.pointText}>Add book</Text>
         </View>
@@ -180,12 +173,15 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
           resizeMode="cover"
         />
         <View style={styles.bookInfo}>
-          <Image source={icons.clock_icon} style={styles.icon} />
+          <Image
+            source={require("../../assets/icons/clock_icon.png")}
+            style={styles.icon}
+          />
           <Text style={styles.iconText}>
             {calculateReadingTime(item.page_no)}
           </Text>
           <Image
-            source={icons.page_icon}
+            source={require("../../assets/icons/page_icon.png")}
             style={[styles.icon, styles.iconPad]}
           />
           <Text style={styles.iconText}>{item.page_no}</Text>
@@ -213,7 +209,9 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
           showsHorizontalScrollIndicator={false}
         />
         <View style={styles.myBookHeader} className="mt-8 py-[12px]">
-          <Text style={styles.myBookTitle}>Pending requests</Text>
+          <Text style={styles.myBookTitle}>
+            Pending <Text className="text-[#F96D41]">requests</Text>
+          </Text>
           <TouchableOpacity onPress={() => console.log("See More")}>
             <Text style={styles.seeMore}>refresh</Text>
           </TouchableOpacity>
@@ -223,6 +221,21 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
           renderItem={renderItemBorrowed}
           keyExtractor={(item) => `${item.id}`}
           showsVerticalScrollIndicator={false}
+          ListEmptyComponent={() => (
+            <View className="flex flex-col items-center justify-center">
+              <View>
+                <Image
+                  source={require("../../assets/images/no-result.png")}
+                  className="w-40 h-40"
+                  alt="No recent rides found"
+                  resizeMode="contain"
+                />
+                <Text className="text-sm text-[#F96D41] opacity-65">
+                  No Pending requests yet
+                </Text>
+              </View>
+            </View>
+          )}
         />
       </View>
     );

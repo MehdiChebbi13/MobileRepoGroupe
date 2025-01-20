@@ -12,9 +12,12 @@ import * as ImagePicker from "expo-image-picker";
 import { COLORS, FONTS, SIZES } from "../../constants/theme";
 import { ScrollView } from "react-native-gesture-handler";
 import { fetchAPI } from "@/lib/fetch";
+import { RootStackParamList } from "./_layout";
+import { StackScreenProps } from "@react-navigation/stack";
 
-const EditBook = ({ navigation, route }) => {
-  const { onAdd } = route.params;
+type Props = StackScreenProps<RootStackParamList, "editBook">;
+const EditBook = ({ navigation, route }: Props) => {
+  const { onAdd }: any = route.params;
 
   const [bookName, setBookName] = useState("");
   const [author, setAuthor] = useState("");

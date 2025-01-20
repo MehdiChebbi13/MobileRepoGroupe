@@ -1,9 +1,18 @@
 import { createStackNavigator } from "@react-navigation/stack";
+import { ParamListBase } from "@react-navigation/native";
 import Home from "../(tabsAdmin)/home";
 import BookDetail from "../(tabsAdmin)/bookDetail";
 import AddBook from "../(tabsAdmin)/addBook";
+import EditBook from "../(tabsAdmin)/editBook";
 
-const Stack = createStackNavigator();
+export type RootStackParamList = {
+  Home: undefined;
+  BookDetail: { bookId: string };
+  addBook: undefined;
+  editBook: { bookId: string };
+};
+
+const Stack = createStackNavigator<RootStackParamList>();
 
 const App = () => {
   return (
@@ -25,7 +34,7 @@ const App = () => {
       />
       <Stack.Screen
         name="editBook"
-        component={AddBook}
+        component={EditBook}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

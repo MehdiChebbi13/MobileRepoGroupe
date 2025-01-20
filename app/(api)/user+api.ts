@@ -10,9 +10,9 @@ export async function POST(request: Request) {
     console.log("Received Data:", { name, email, clerkId });
 
     if (!name || !email || !clerkId) {
-      return Response.json(
-        { error: "Missing required fields" },
-        { status: 400 },
+      return new Response(
+        JSON.stringify({ error: "Missing required fields" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -26,16 +26,21 @@ export async function POST(request: Request) {
         ${name}, 
         ${email},
         ${clerkId}
-     );`;
+     ) RETURNING *;`;
 
-    return new Response(JSON.stringify({ data: response }), {
-      status: 201,
-    });
+    return new Response(
+      JSON.stringify({ message: "User created successfully", data: response }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
   } catch (error) {
     console.error("Error creating user:", error);
-    return Response.json({ error: "Internal Server Error" }, { status: 500 });
+    return new Response(
+      JSON.stringify({ error: "Internal Server Error" }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
   }
 }
+
 
 // export async function GET(request: Request) {
 //   try {

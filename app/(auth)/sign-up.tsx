@@ -35,15 +35,6 @@ const SignUp = () => {
   }, [user, verification.state]);
 
   const registerUserInBackend = async () => {
-    // const userData = {
-    //   name: form.name,
-    //   email: form.email,
-    //   role: form.role,
-
-    //   // Add any other fields you need
-    // };
-    //console.log("User data:", JSON.stringify(userData));
-
     try {
       setVerification({ ...verification, state: "success" });
       setIsLoading(false);
@@ -127,6 +118,7 @@ const SignUp = () => {
           ...verification,
           state: "completeVerification",
         });
+        router.replace("../(tabs)/home");
       } else {
         setVerification({
           ...verification,
