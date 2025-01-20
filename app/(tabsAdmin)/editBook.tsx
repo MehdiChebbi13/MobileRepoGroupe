@@ -8,10 +8,12 @@ import {
   StyleSheet,
   Button,
 } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 import { COLORS, FONTS, SIZES } from "../../constants/theme";
+import { ScrollView } from "react-native-gesture-handler";
 import { fetchAPI } from "@/lib/fetch";
 
-const AddBook = ({ navigation, route }) => {
+const EditBook = ({ navigation, route }) => {
   const { onAdd } = route.params;
 
   const [bookName, setBookName] = useState("");
@@ -21,10 +23,6 @@ const AddBook = ({ navigation, route }) => {
   const [description, setDescription] = useState("");
   const [language, setLanguage] = useState("");
   const [bookCover, setBookCover] = useState("");
-
-  const resetImage = () => {
-    setBookCover("");
-  };
 
   const submitForm = async () => {
     if (
@@ -42,7 +40,7 @@ const AddBook = ({ navigation, route }) => {
 
     const newBook = {
       book_name: bookName,
-      book_cover: { bookCover },
+      book_cover: { uri: bookCover },
       published_year: parseInt(publishedYear),
       language: "English",
       page_no: parseInt(pageNo),
@@ -51,16 +49,14 @@ const AddBook = ({ navigation, route }) => {
     };
 
     try {
-      // Send a POST request
-      const response = await fetch("/(api)/book", {
-        method: "POST",
+      const response = await fetchAPI("/(api)/book", {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(newBook),
       });
 
-      // Parse the response
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.error || "Failed to add book");
@@ -79,7 +75,7 @@ const AddBook = ({ navigation, route }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -87,7 +83,7 @@ const AddBook = ({ navigation, route }) => {
         >
           <Text style={styles.backText}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Add Books</Text>
+        <Text style={styles.headerTitle}>Add Book</Text>
       </View>
       <TextInput
         placeholder="Book Name"
@@ -135,21 +131,12 @@ const AddBook = ({ navigation, route }) => {
         multiline
         numberOfLines={4}
       />
-      <TextInput
-        placeholder="Book Cover"
-        placeholderTextColor={COLORS.lightGray}
-        value={bookCover}
-        onChangeText={setBookCover}
-        style={styles.input}
-      />
-
       <TouchableOpacity style={styles.addButton} onPress={submitForm}>
         <Text style={styles.buttonText}>Add Book</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -214,4 +201,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AddBook;
+export default EditBook;

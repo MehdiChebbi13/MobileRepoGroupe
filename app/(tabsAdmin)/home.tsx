@@ -20,6 +20,7 @@ import { myBooksData, categoriesData } from "@/data/dummy";
 import { Book, Profile } from "@/types/book";
 import BookCard from "@/components/BookCard";
 import PendingCard from "@/components/PendingCard";
+import RequestDetail from "@/components/RequestDetail";
 
 function calculateReadingTime(pageCount: number): string {
   const WORDS_PER_PAGE = 250;
@@ -89,39 +90,44 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
   };
 
   const [profile, setProfile] = useState<Profile>(profileData);
-  const [myBooks, setMyBooks] = useState<MyBook[]>(myBooksData);
+  const [myBooks, setMyBooks] = useState<MyBook[]>([]);
   const [pendingRequests, setPendingRequests] = useState<Myrequest[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [bookError, setBookError] = useState<string | null>(null);
+  const [pendingError, setPendingError] = useState<string | null>(null);
+  const [bookLoading, setBookLoading] = useState<boolean>(true);
+  const [pendingLoading, setPendingLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchBooks = async () => {
-      setLoading(true);
+      setBookLoading(true);
       try {
         const data = await fetchAPI("/(api)/book");
         setMyBooks(data.data as MyBook[]);
       } catch (err: any) {
         console.error("Error fetching books:", err.message);
-        setError("Unable to load books. Please try again later.");
+        setBookError("Unable to load books. Please try again later.");
       } finally {
-        setLoading(false);
+        setBookLoading(false);
       }
     };
 
-    /* const fetchPendingRequests = async () => {
-      setLoading(true);
+    const fetchPendingRequests = async () => {
+      setPendingLoading(true);
       try {
         const data = await fetchAPI("/(api)/booking/pending");
         setPendingRequests(data.data as Myrequest[]);
       } catch (err: any) {
         console.error("Error fetching pending requests:", err.message);
-        setError("Unable to load pending requests. Please try again later.");
+        setPendingError(
+          "Unable to load pending requests. Please try again later."
+        );
       } finally {
-        setLoading(false);
+        setPendingLoading(false);
       }
     };
-    fetchPendingRequests(); */
+
     fetchBooks();
+    fetchPendingRequests();
   }, []);
   const renderHeader = (profile: Profile) => (
     <View style={styles.headerContainer}>
@@ -187,8 +193,8 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
       </TouchableOpacity>
     );
 
-    const renderItemBorrowed = ({ item }: { item: MyBook; index: number }) => (
-      <BookCard key={item.id} {...item} />
+    const renderItemBorrowed = ({ item }: { item: Myrequest }) => (
+      <PendingCard key={item.id} {...item} />
     );
 
     return (
@@ -213,7 +219,7 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         <FlatList
-          data={myBooks}
+          data={pendingRequests}
           renderItem={renderItemBorrowed}
           keyExtractor={(item) => `${item.id}`}
           showsVerticalScrollIndicator={false}

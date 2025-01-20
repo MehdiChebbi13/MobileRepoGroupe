@@ -109,6 +109,74 @@ export async function POST(request: Request) {
     }
 }
 
+export async function PUT(request: Request) {
+  try {
+    const url = new URL(request.url);
+    const id = url.searchParams.get("id"); 
+
+    // Ensure the ID is valid
+    if (!id) {
+      return new Response(
+        JSON.stringify({ error: "Invalid or missing book ID" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    const { 
+      book_name, 
+      book_cover, 
+      published_year, 
+      language, 
+      page_no, 
+      author, 
+      description 
+    } = await request.json();
+
+    // Validate input
+    if (!book_name || !book_cover || !published_year || !language || !page_no || !author || !description) {
+      return new Response(
+        JSON.stringify({ error: "Missing required fields" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // Update the book in the database
+    const response = await sql`
+      UPDATE books
+      SET 
+        book_name = ${book_name},
+        book_cover = ${book_cover},
+        published_year = ${published_year},
+        language = ${language},
+        page_no = ${page_no},
+        author = ${author},
+        description = ${description}
+      WHERE id = ${id}
+      RETURNING *;
+    `;
+
+    console.log("book updated succesfully");
+
+    if (response.length === 0) {
+      return new Response(
+        JSON.stringify({ error: "Book not found" }),
+        { status: 404, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    return new Response(JSON.stringify({ data: response[0] }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    console.error("Error updating book:", error);
+    return new Response(
+      JSON.stringify({ error: "Internal Server Error" }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
+}
+
 export async function DELETE(request: Request) {
   try {
       const url = new URL(request.url);

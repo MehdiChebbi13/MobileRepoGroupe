@@ -1,7 +1,7 @@
-/* import { createStackNavigator } from "@react-navigation/stack";
+import { createStackNavigator } from "@react-navigation/stack";
 import Home from "../(tabsAdmin)/home";
 import BookDetail from "../(tabsAdmin)/bookDetail";
-import AddBook from "./addBook";
+import AddBook from "../(tabsAdmin)/addBook";
 
 const Stack = createStackNavigator();
 
@@ -23,9 +23,13 @@ const App = () => {
         component={AddBook}
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name="editBook"
+        component={AddBook}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 };
 
 export default App;
- */

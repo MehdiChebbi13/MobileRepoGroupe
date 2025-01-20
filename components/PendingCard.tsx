@@ -1,29 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   Image,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
+  Alert,
 } from "react-native";
-
 import { icons } from "../constants/icons";
+import { fetchAPI } from "@/lib/fetch";
 
 type BorrowStatus = "Borrowed" | "Pending" | "Refused";
-
-const getStatusColor = (status: BorrowStatus): string => {
-  switch (status) {
-    case "Borrowed":
-      return "#4CAF50";
-    case "Pending":
-      return "#FFC107";
-    case "Refused":
-      return "#F44336";
-    default:
-      return "#757575";
-  }
-};
 
 const formatDate = (date: string | Date): string => {
   const borrowDate = new Date(date);
@@ -35,44 +22,67 @@ const formatDate = (date: string | Date): string => {
     minute: "2-digit",
   });
 };
-export interface Book {
+
+type PendingCardProps = {
   id: number;
-  user_id: number;
-  book_id: number;
   book_cover: string;
   book_name: string;
   author: string;
   page_no: number;
+  user_id: number;
   borrow_time: Date | string;
-  return_time: Date | string | null;
-  status: BorrowStatus;
-  created_at: Date | string;
-}
+  onRequestProcessed?: () => void; // Optional callback to refresh parent list
+};
 
-const PendingCard: React.FC<Book> = ({
-  user_id,
+const PendingCard: React.FC<PendingCardProps> = ({
+  id,
   book_cover,
   book_name,
   author,
   page_no,
+  user_id,
   borrow_time,
-  status,
-  return_time,
+  onRequestProcessed,
 }) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentStatus, setCurrentStatus] = useState<BorrowStatus>("Pending");
+
+  const handleStatusUpdate = async (newStatus: BorrowStatus) => {
+    setIsLoading(true);
+    try {
+      const response = await fetchAPI(`/(api)/booking/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (response.data) {
+        setCurrentStatus(newStatus);
+        Alert.alert(
+          "Success",
+          `Book request ${newStatus.toLowerCase()} successfully`
+        );
+        onRequestProcessed?.();
+      } else {
+        throw new Error(response.error || "Failed to update status");
+      }
+    } catch (error: any) {
+      Alert.alert("Error", error.message || "Failed to update request status");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <TouchableOpacity
-      style={styles.container}
-      onPress={() => console.log("Book Card Pressed")}
-      activeOpacity={0.7}
-    >
-      {/* Book Cover */}
+    <View style={styles.container}>
       <Image
         source={{ uri: book_cover }}
         style={styles.cover}
         resizeMode="cover"
       />
 
-      {/* Book Details */}
       <View style={styles.detailsContainer}>
         <View style={styles.headerContainer}>
           <View style={styles.titleContainer}>
@@ -83,16 +93,46 @@ const PendingCard: React.FC<Book> = ({
               by {author}
             </Text>
           </View>
-          <View
-            style={[
-              styles.statusBadge,
-              { backgroundColor: getStatusColor(status) },
-            ]}
-          >
-            <Text style={styles.statusText}>{status}</Text>
+
+          <View className="flex flex-row items-center gap-2">
+            {currentStatus === "Pending" ? (
+              <>
+                <TouchableOpacity
+                  className="bg-[#1b7e23] rounded-3xl px-3 py-2"
+                  onPress={() => handleStatusUpdate("Borrowed")}
+                  disabled={isLoading}
+                >
+                  <Text className="text-white">
+                    {isLoading ? "Processing..." : "Accept"}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className="bg-[#F44336] rounded-3xl px-3 py-2"
+                  onPress={() => handleStatusUpdate("Refused")}
+                  disabled={isLoading}
+                >
+                  <Text className="text-white">
+                    {isLoading ? "Processing..." : "Reject"}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <View
+                className={`px-3 py-2 rounded-3xl ${
+                  currentStatus === "Borrowed" ? "bg-[#1b7e23]" : "bg-[#F44336]"
+                }`}
+              >
+                <Text className="text-white">{currentStatus}</Text>
+              </View>
+            )}
           </View>
         </View>
+
         <View>
+          <Text className="text-[12px] text-[#F96D41] opacity-70">
+            Borrow_date:
+          </Text>
+          <Text style={styles.borrowTime}>{formatDate(borrow_time)}</Text>
           <View className="flex-row items-center justify-between">
             <View>
               <Text className="text-[12px] text-[#F96D41] opacity-70">
@@ -114,7 +154,7 @@ const PendingCard: React.FC<Book> = ({
           </View>
         </View>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 };
 
@@ -126,14 +166,6 @@ const styles = StyleSheet.create({
     padding: 12,
     marginVertical: 8,
     marginHorizontal: 16,
-    /*elevation: 3,
-      shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84, */
   },
   cover: {
     width: 80,
@@ -164,23 +196,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666666",
     marginBottom: 8,
-  },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    minWidth: 80,
-    alignItems: "center",
-  },
-  statusText: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontWeight: "500",
-  },
-  footerContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
   },
   pageInfo: {
     flexDirection: "row",
