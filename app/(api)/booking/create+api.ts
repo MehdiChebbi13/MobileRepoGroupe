@@ -5,7 +5,7 @@ const sql = neon(`${process.env.DATABASE_URL}`);
 
 export async function POST(request: Request) {
   try {
-    const { user_id, book_id, book_cover, book_name, author, page_no, status } =
+    const { user_id, book_id, book_cover, book_name, author, page_no} =
       await request.json();
 
     if (
@@ -14,8 +14,7 @@ export async function POST(request: Request) {
       !book_cover ||
       !book_name ||
       !author ||
-      !page_no ||
-      !status
+      !page_no
     ) {
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
@@ -24,8 +23,8 @@ export async function POST(request: Request) {
     }
 
     const response = await sql`
-      INSERT INTO book_borrowing (user_id, book_id, book_cover, book_name, author, page_no, status)
-      VALUES (${user_id}, ${book_id}, ${book_cover}, ${book_name}, ${author}, ${page_no}, ${status})
+      INSERT INTO book_borrowing (user_id, book_id, book_cover, book_name, author, page_no, borrow_time, return_time, status)
+      VALUES (${user_id}, ${book_id}, ${book_cover}, ${book_name}, ${author}, ${page_no}, current_timestamp, current_timestamp + interval '14 day', 'Pending');
       RETURNING *;
     `;
 

@@ -151,6 +151,7 @@ export async function PUT(request: Request) {
         page_no = ${page_no},
         author = ${author},
         description = ${description}
+        created_at = current_timestamp
       WHERE id = ${id}
       RETURNING *;
     `;

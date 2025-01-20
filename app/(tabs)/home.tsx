@@ -13,6 +13,7 @@ import { COLORS, FONTS, SIZES } from "../../constants/theme";
 import { Profile } from "@/types/book";
 import BookCard from "@/components/BookCard";
 import { fetchAPI } from "@/lib/fetch";
+import { useUser } from "@clerk/clerk-expo";
 
 function calculateReadingTime(pageCount: number): string {
   const WORDS_PER_PAGE = 250;
@@ -41,6 +42,26 @@ type MyBook = {
   return_time: Date | string;
 };
 
+type MyBorrowedBook = {
+    id: number;
+    user_id: number;
+    book_id: number;
+    book_cover: string;
+    book_name: string;
+    author: string;
+    page_no: number;
+    borrow_time: string; 
+    return_time: string; 
+    status: BorrowStatus; 
+    created_at: string;
+    user: {
+      id: number;
+      name: string;
+      email: string;
+      clerkId: string;
+    };
+};
+
 type HomeProps = {
   navigation: any;
 };
@@ -62,8 +83,11 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
 
   const [profile, setProfile] = useState<Profile>(profileData);
   const [myBooks, setMyBooks] = useState<MyBook[]>([]);
+  const [myBorrowedBooks, setMyBorrowedBooks] = useState<MyBorrowedBook[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+
+  const {user}= useUser();
 
   useEffect(() => {
     const fetchBooks = async () => {
@@ -79,7 +103,26 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
       }
     };
 
+    const fetchBorrowedBooks = async () => {
+      if (!user) {
+        setError("User not found. Please log in again.");
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      try {
+        const data = await fetchAPI(`/(api)/booking/${user.id}`, {method:"GET"});
+        setMyBorrowedBooks(data as MyBorrowedBook[]);
+      } catch (err: any) {
+        console.error("Error fetching borrowed books:", err.message);
+        setError("Unable to load borrowed books. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchBooks();
+    fetchBorrowedBooks();
   }, []);
 
   const renderHeader = (profile: Profile) => (
@@ -147,9 +190,17 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
       </TouchableOpacity>
     );
 
-    const renderItemBorrowed = ({ item }: { item: MyBook; index: number }) => (
-      <BookCard key={item.id} {...item} />
-    );
+    const renderItemBorrowed = ({ item }: { item: MyBorrowedBook; index: number }) => (
+      <BookCard
+        id={item.book_id}
+        book_cover={item.book_cover}
+        book_name={item.book_name}
+        author={item.author}
+        page_no={item.page_no}
+        borrow_time={item.borrow_time}
+        status={item.status}
+        return_time={item.return_time} />
+    ); 
 
     return (
       <View style={{ flex: 1 }}>
@@ -175,7 +226,7 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         <FlatList
-          data={myBooks}
+          data={myBorrowedBooks}
           renderItem={renderItemBorrowed}
           keyExtractor={(item) => `${item.id}`}
           showsVerticalScrollIndicator={false}

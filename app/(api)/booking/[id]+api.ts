@@ -7,11 +7,23 @@ export async function GET(request: Request, { id }: { id: string }) {
 
   try {
     
-    const response = await sql`
-        SELECT * FROM book_borrowing WHERE user_id = ${id} ORDER BY created_at DESC;
-    `;
+    const response = await sql
+    ` SELECT 
+        bb.*,
+        json_build_object(
+            'id', u.id,
+            'name', u.name,
+            'email', u.email,
+            'clerkId', u.clerk_id
+        ) AS user
+    FROM book_borrowing bb
+    JOIN users u ON bb.user_id = u.id
+    JOIN books b ON bb.book_id = b.id
+    WHERE u.clerk_id = ${id}
+    ORDER BY bb.created_at DESC; `
+;
 
-    return Response.json({ data: response });
+    return Response.json( response);
   } catch (error) {
     console.error("Error fetching book borrowing entries:", error);
     return Response.json({ error: "Internal Server Error" }, { status: 500 });
