@@ -14,46 +14,60 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Picker } from "@react-native-picker/picker";
 import { StackScreenProps } from "@react-navigation/stack";
 import { RootStackParamList } from "./_layout";
+import { fetchAPI } from "@/lib/fetch";
 /* import { COLORS } from "../"; */
 
 type Props = StackScreenProps<RootStackParamList, "addBook">;
 
 interface FormData {
-  title: string;
-  author: string;
-  coverUrl: string;
-  pageCount: string;
-  rating: string;
+  book_name: string;
+  book_cover: string;
+  published_year: string;
   language: string;
+  page_no: string;
+  author: string;
   description: string;
 }
 
 const BookDetailForm = ({ navigation, route }: Props) => {
   const [form, setForm] = useState<FormData>({
-    title: "",
+    book_name: "",
     author: "",
-    coverUrl: "",
-    pageCount: "",
-    rating: "",
-    language: "Eng",
+    book_cover: "",
+    published_year: "",
+    language: "FR",
+    page_no: "",
     description: "",
   });
 
   const handleSubmit = async () => {
     try {
-      // Validate form
-      if (!form.title || !form.author || !form.pageCount || !form.description) {
-        alert("Please fill in all required fields");
-        return;
-      }
+      // Validate form fields
+      const requiredFields = [
+        "book_name",
+        "author",
+        "published_year",
+        "page_no",
+        "description",
+        "language",
+        "book_cover",
+      ];
 
-      // Add your API call here
-      // For now, just log and navigate back
-      console.log("Form submitted:", form);
+      // Call the API
+      const response = await fetchAPI("/(api)/book", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      alert("Book added successfully!");
       navigation.goBack();
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      alert("Error submitting form");
+    } catch (error: any) {
+      console.error("Error submitting form:", error.message || error);
+      alert(
+        error.message ||
+          "An unexpected error occurred while submitting the form."
+      );
     }
   };
 
@@ -63,12 +77,19 @@ const BookDetailForm = ({ navigation, route }: Props) => {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardAvoid}
       >
+        <TouchableOpacity
+          style={{ position: "absolute", top: 0, left: 0, zIndex: 1 }}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.backButton}>←</Text>
+        </TouchableOpacity>
+
         <ScrollView style={styles.scrollView}>
           {/* Book Cover */}
           <View style={styles.coverContainer}>
-            {form.coverUrl ? (
+            {form.book_cover ? (
               <Image
-                source={{ uri: form.coverUrl }}
+                source={{ uri: form.book_cover }}
                 style={styles.coverImage}
                 resizeMode="cover"
               />
@@ -85,8 +106,8 @@ const BookDetailForm = ({ navigation, route }: Props) => {
               style={styles.titleInput}
               placeholder="Book Title"
               placeholderTextColor="#ffffff80"
-              value={form.title}
-              onChangeText={(text) => setForm({ ...form, title: text })}
+              value={form.book_name}
+              onChangeText={(text) => setForm({ ...form, book_name: text })}
             />
             <Text style={styles.statLabel}>Title</Text>
             <TextInput
@@ -104,13 +125,15 @@ const BookDetailForm = ({ navigation, route }: Props) => {
             <View style={styles.statItem}>
               <TextInput
                 style={styles.statInput}
-                placeholder="0.0"
+                placeholder="2003"
                 placeholderTextColor="#ffffff80"
-                value={form.rating}
-                onChangeText={(text) => setForm({ ...form, rating: text })}
+                value={form.published_year}
+                onChangeText={(text) =>
+                  setForm({ ...form, published_year: text })
+                }
                 keyboardType="numeric"
               />
-              <Text style={styles.statLabel}>Rating</Text>
+              <Text style={styles.statLabel}>Year</Text>
             </View>
 
             <View style={styles.statItem}>
@@ -118,8 +141,8 @@ const BookDetailForm = ({ navigation, route }: Props) => {
                 style={styles.statInput}
                 placeholder="0"
                 placeholderTextColor="#ffffff80"
-                value={form.pageCount}
-                onChangeText={(text) => setForm({ ...form, pageCount: text })}
+                value={form.page_no}
+                onChangeText={(Text) => setForm({ ...form, page_no: Text })}
                 keyboardType="numeric"
               />
               <Text style={styles.statLabel}>Number of Page</Text>
@@ -147,8 +170,8 @@ const BookDetailForm = ({ navigation, route }: Props) => {
             style={styles.coverUrlInput}
             placeholder="Cover Image URL"
             placeholderTextColor="#ffffff80"
-            value={form.coverUrl}
-            onChangeText={(text) => setForm({ ...form, coverUrl: text })}
+            value={form.book_cover}
+            onChangeText={(text) => setForm({ ...form, book_cover: text })}
           />
 
           {/* Description Section */}
@@ -164,10 +187,6 @@ const BookDetailForm = ({ navigation, route }: Props) => {
               onChangeText={(text) => setForm({ ...form, description: text })}
             />
           </View>
-
-          {/* Cover URL Input */}
-
-          {/* Submit Button */}
 
           <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
             <Text style={styles.submitButtonText}>Add book</Text>
@@ -290,6 +309,11 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "600",
+  },
+  backButton: {
+    color: "white",
+    fontSize: 24,
+    margin: 20,
   },
 });
 

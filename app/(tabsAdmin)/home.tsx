@@ -21,7 +21,6 @@ import { myBooksData, categoriesData } from "@/data/dummy";
 import { Book, Profile } from "@/types/book";
 import BookCard from "@/components/BookCard";
 import PendingCard from "@/components/PendingCard";
-import RequestDetail from "@/components/RequestDetail";
 
 function calculateReadingTime(pageCount: number): string {
   const WORDS_PER_PAGE = 250;
@@ -44,7 +43,7 @@ type Myrequest = {
   page_no: number;
   borrow_time: Date | string;
   author: string;
-  user_id: number;
+  user_name: string;
   book_id: number;
   book_cover: string;
   book_name: string;
@@ -86,6 +85,8 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
   const [pendingError, setPendingError] = useState<string | null>(null);
   const [bookLoading, setBookLoading] = useState<boolean>(true);
   const [pendingLoading, setPendingLoading] = useState<boolean>(true);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [openBook, setOpenBook] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchBooks = async () => {
@@ -105,7 +106,7 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
       setPendingLoading(true);
       try {
         const data = await fetchAPI("/(api)/booking/pending");
-        setPendingRequests(data.data as Myrequest[]);
+        setPendingRequests(data as Myrequest[]);
       } catch (err: any) {
         console.error("Error fetching pending requests:", err.message);
         setPendingError(
@@ -118,7 +119,7 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
 
     fetchBooks();
     fetchPendingRequests();
-  }, []);
+  }, [refreshing, openBook]);
   const renderHeader = (profile: Profile) => (
     <View style={styles.headerContainer}>
       <View style={styles.headerTextContainer}>
@@ -159,13 +160,12 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
           marginLeft: index === 0 ? SIZES.padding : 0,
           marginRight: SIZES.radius,
         }}
-        onPress={() =>
-          /* router.replace("BookDetail"
-            ) */
-          navigation.navigate("BookDetail", {
+        onPress={() => {
+          setOpenBook(true);
+          navigation.navigate("ModifyBook", {
             book: item,
-          })
-        }
+          });
+        }}
       >
         <Image
           source={{ uri: item.book_cover }}
@@ -197,7 +197,7 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
       <View style={{ flex: 1 }}>
         <View style={styles.myBookHeader} className="py-[12px]">
           <Text style={styles.myBookTitle}>Books Available</Text>
-          <TouchableOpacity onPress={() => console.log("See More")}>
+          <TouchableOpacity onPress={() => setRefreshing(!refreshing)}>
             <Text style={styles.seeMore}>refresh</Text>
           </TouchableOpacity>
         </View>
@@ -212,7 +212,7 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
           <Text style={styles.myBookTitle}>
             Pending <Text className="text-[#F96D41]">requests</Text>
           </Text>
-          <TouchableOpacity onPress={() => console.log("See More")}>
+          <TouchableOpacity onPress={() => setRefreshing(!refreshing)}>
             <Text style={styles.seeMore}>refresh</Text>
           </TouchableOpacity>
         </View>

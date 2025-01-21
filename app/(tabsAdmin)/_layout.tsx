@@ -3,13 +3,14 @@ import { ParamListBase } from "@react-navigation/native";
 import Home from "../(tabsAdmin)/home";
 import BookDetail from "../(tabsAdmin)/bookDetail";
 import AddBook from "../(tabsAdmin)/addBook";
-import EditBook from "../(tabsAdmin)/editBook";
+
+import ModifyBook from "../(tabsAdmin)/ModifyBook";
 
 export type RootStackParamList = {
   Home: undefined;
   BookDetail: { bookId: string };
   addBook: undefined;
-  editBook: { bookId: string };
+  ModifyBook: { bookId: string };
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -33,8 +34,8 @@ const App = () => {
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="editBook"
-        component={EditBook}
+        name="ModifyBook"
+        component={ModifyBook}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

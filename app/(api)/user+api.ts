@@ -4,7 +4,6 @@ const sql = neon(`${process.env.DATABASE_URL}`);
 
 export async function POST(request: Request) {
   try {
-    console.log("Received request:", request);
 
     const { name, email, clerkId } = await request.json();
     console.log("Received Data:", { name, email, clerkId });
@@ -41,31 +40,41 @@ export async function POST(request: Request) {
   }
 }
 
+//! GET request
+export async function GET(request: Request) {
+  try {
+    const url = new URL(request.url);
+    const clerkId = url.searchParams.get("clerkId");
 
-// export async function GET(request: Request) {
-//   try {
-//     const url = new URL(request.url);
-//     const clerkId = url.searchParams.get("clerkId");
+    if (!clerkId) {
+      return new Response(
+        JSON.stringify({ error: "Missing clerkId parameter" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
 
-//     if (!clerkId) {
-//       return Response.json({ error: "Missing clerkId parameter" }, { status: 400 });
-//     }
+    console.log("Fetching user with clerkId:", clerkId);
 
-//     console.log("Fetching user with clerkId:", clerkId);
+    const response = await sql`
+      SELECT role FROM users WHERE clerk_id = ${clerkId};
+    `;
 
-//     const response = await sql`
-//       SELECT * FROM users WHERE clerk_id = ${clerkId};
-//     `;
+    if (response.length === 0) {
+      return new Response(
+        JSON.stringify({ error: "User not found" }),
+        { status: 404, headers: { "Content-Type": "application/json" } }
+      );
+    }
 
-//     if (response.length === 0) {
-//       return Response.json({ error: "User not found" }, { status: 404 });
-//     }
-
-//     return new Response(JSON.stringify({ user: response[0] }), {
-//       status: 200,
-//     });
-//   } catch (error) {
-//     console.error("Error fetching user:", error);
-//     return Response.json({ error: "Internal Server Error" }, { status: 500 });
-//   }
-// }
+    return new Response(
+      JSON.stringify({ role: response[0].role }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    return new Response(
+      JSON.stringify({ error: "Internal Server Error" }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
+}

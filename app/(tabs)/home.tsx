@@ -13,7 +13,8 @@ import { COLORS, FONTS, SIZES } from "../../constants/theme";
 import { Profile } from "@/types/book";
 import BookCard from "@/components/BookCard";
 import { fetchAPI } from "@/lib/fetch";
-import { useUser } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
+import { router } from "expo-router";
 
 function calculateReadingTime(pageCount: number): string {
   const WORDS_PER_PAGE = 250;
@@ -43,23 +44,23 @@ type MyBook = {
 };
 
 type MyBorrowedBook = {
+  id: number;
+  user_id: number;
+  book_id: number;
+  book_cover: string;
+  book_name: string;
+  author: string;
+  page_no: number;
+  borrow_time: string;
+  return_time: string;
+  status: BorrowStatus;
+  created_at: string;
+  user: {
     id: number;
-    user_id: number;
-    book_id: number;
-    book_cover: string;
-    book_name: string;
-    author: string;
-    page_no: number;
-    borrow_time: string; 
-    return_time: string; 
-    status: BorrowStatus; 
-    created_at: string;
-    user: {
-      id: number;
-      name: string;
-      email: string;
-      clerkId: string;
-    };
+    name: string;
+    email: string;
+    clerkId: string;
+  };
 };
 
 type HomeProps = {
@@ -77,7 +78,7 @@ const LineDivider: React.FC = () => {
 
 const Home: React.FC<HomeProps> = ({ navigation }) => {
   const profileData: Profile = {
-    name: "Username",
+    name: "Admin",
     point: 200,
   };
 
@@ -86,8 +87,13 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
   const [myBorrowedBooks, setMyBorrowedBooks] = useState<MyBorrowedBook[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-
-  const {user}= useUser();
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const { signOut } = useAuth();
+  const { user } = useUser();
+  const handleLogout = () => {
+    signOut();
+    router.replace("/(auth)/sign-in");
+  };
 
   useEffect(() => {
     const fetchBooks = async () => {
@@ -111,7 +117,9 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
       }
       setLoading(true);
       try {
-        const data = await fetchAPI(`/(api)/booking/${user.id}`, {method:"GET"});
+        const data = await fetchAPI(`/(api)/booking/${user.id}`, {
+          method: "GET",
+        });
         setMyBorrowedBooks(data as MyBorrowedBook[]);
       } catch (err: any) {
         console.error("Error fetching borrowed books:", err.message);
@@ -123,25 +131,22 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
 
     fetchBooks();
     fetchBorrowedBooks();
-  }, []);
+  }, [refreshing]);
 
   const renderHeader = (profile: Profile) => (
     <View style={styles.headerContainer}>
       <View style={styles.headerTextContainer}>
         <Text style={styles.greetingText}>Good Morning</Text>
         <Text style={styles.profileName} className="text-[#F96D41]">
-          {profile.name}
+          {user?.username}
         </Text>
       </View>
 
-      <TouchableOpacity
-        style={styles.pointButton}
-        onPress={() => console.log("Point")}
-      >
+      <TouchableOpacity style={styles.pointButton} onPress={handleLogout}>
         <View className="flex-row items-center justify-center py-2 px-2 ">
           <View className="size-[27px]  rounded-3xl bg-[#00000080] flex items-center justify-center">
             <Image
-              source={require("../../assets/icons/person.png")}
+              source={require("../../assets/icons/out.png")}
               style={styles.pointIcon}
               tintColor={"white"}
               className="p-2"
@@ -190,7 +195,12 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
       </TouchableOpacity>
     );
 
-    const renderItemBorrowed = ({ item }: { item: MyBorrowedBook; index: number }) => (
+    const renderItemBorrowed = ({
+      item,
+    }: {
+      item: MyBorrowedBook;
+      index: number;
+    }) => (
       <BookCard
         id={item.book_id}
         book_cover={item.book_cover}
@@ -199,14 +209,15 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
         page_no={item.page_no}
         borrow_time={item.borrow_time}
         status={item.status}
-        return_time={item.return_time} />
-    ); 
+        return_time={item.return_time}
+      />
+    );
 
     return (
       <View style={{ flex: 1 }}>
         <View style={styles.myBookHeader} className="py-[12px]">
           <Text style={styles.myBookTitle}>Books Available</Text>
-          <TouchableOpacity onPress={() => console.log("See More")}>
+          <TouchableOpacity onPress={() => setRefreshing(!refreshing)}>
             <Text style={styles.seeMore}>refresh</Text>
           </TouchableOpacity>
         </View>
@@ -221,7 +232,7 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
           <Text style={styles.myBookTitle}>
             Books <Text className="text-[#F96D41]">Borrowed</Text>
           </Text>
-          <TouchableOpacity onPress={() => console.log("See More")}>
+          <TouchableOpacity onPress={() => setRefreshing(!refreshing)}>
             <Text style={styles.seeMore}>refresh</Text>
           </TouchableOpacity>
         </View>
@@ -230,6 +241,21 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
           renderItem={renderItemBorrowed}
           keyExtractor={(item) => `${item.id}`}
           showsVerticalScrollIndicator={false}
+          ListEmptyComponent={() => (
+            <View className="flex flex-col items-center justify-center">
+              <View>
+                <Image
+                  source={require("../../assets/images/no-result.png")}
+                  className="w-40 h-40"
+                  alt="No recent rides found"
+                  resizeMode="contain"
+                />
+                <Text className="text-sm text-[#F96D41] opacity-65">
+                  No Books borrowed yet
+                </Text>
+              </View>
+            </View>
+          )}
         />
       </View>
     );
@@ -241,7 +267,7 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
         ListHeaderComponent={
           <View className="mt-4">{renderHeader(profile)}</View>
         }
-        data={[{ key: "MyBooksSection" }]} // Dummy data for FlatList
+        data={[{ key: "MyBooksSection" }]}
         renderItem={() => renderMyBookSection(myBooks)}
         keyExtractor={(item, index) => `section-${index}`}
         showsVerticalScrollIndicator={false}

@@ -29,7 +29,7 @@ type PendingCardProps = {
   book_name: string;
   author: string;
   page_no: number;
-  user_id: number;
+  user_name: string;
   borrow_time: Date | string;
   onRequestProcessed?: () => void; // Optional callback to refresh parent list
 };
@@ -40,7 +40,7 @@ const PendingCard: React.FC<PendingCardProps> = ({
   book_name,
   author,
   page_no,
-  user_id,
+  user_name,
   borrow_time,
   onRequestProcessed,
 }) => {
@@ -130,15 +130,14 @@ const PendingCard: React.FC<PendingCardProps> = ({
 
         <View>
           <Text className="text-[12px] text-[#F96D41] opacity-70">
-            Borrow_date:
+            Requested on:
           </Text>
           <Text style={styles.borrowTime}>{formatDate(borrow_time)}</Text>
           <View className="flex-row items-center justify-between">
             <View>
               <Text className="text-[12px] text-[#F96D41] opacity-70">
-                user_id:
+                User: <Text style={styles.borrowTime}>{user_name}</Text>
               </Text>
-              <Text style={styles.borrowTime}>{user_id}</Text>
             </View>
             <View
               style={styles.pageInfo}

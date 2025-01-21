@@ -26,7 +26,7 @@ const sql = neon(`${process.env.DATABASE_URL}`);
 //     );
 //   }
 // }
-
+//! Get all books or a single book by ID
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
@@ -69,6 +69,8 @@ export async function GET(request: Request) {
   }
 }
 
+
+//! Create a new book
 export async function POST(request: Request) {
     try{
     const { 
@@ -88,6 +90,12 @@ export async function POST(request: Request) {
           { status: 400, headers: { "Content-Type": "application/json" } }
         );
       }
+      if (isNaN(published_year) || isNaN(page_no)) {
+        return new Response(
+          JSON.stringify({ error: "Invalid year or page number" }),
+          { status: 400, headers: { "Content-Type": "application/json" } }
+        );
+      }
   
       // Insert the book into the database
       const response = await sql`
@@ -96,7 +104,7 @@ export async function POST(request: Request) {
       RETURNING *;
     `;
   
-    return new Response(JSON.stringify({ data: response[0] }), {
+    return new Response(JSON.stringify(response ), {
         status: 201,
         headers: { "Content-Type": "application/json" },
       });
@@ -108,7 +116,7 @@ export async function POST(request: Request) {
       );
     }
 }
-
+//! Update a book
 export async function PUT(request: Request) {
   try {
     const url = new URL(request.url);
@@ -142,19 +150,20 @@ export async function PUT(request: Request) {
 
     // Update the book in the database
     const response = await sql`
-      UPDATE books
-      SET 
-        book_name = ${book_name},
-        book_cover = ${book_cover},
-        published_year = ${published_year},
-        language = ${language},
-        page_no = ${page_no},
-        author = ${author},
-        description = ${description}
-        created_at = current_timestamp
-      WHERE id = ${id}
-      RETURNING *;
-    `;
+  UPDATE books
+  SET 
+    book_name = ${book_name},
+    book_cover = ${book_cover},
+    published_year = ${published_year},
+    language = ${language},
+    page_no = ${page_no},
+    author = ${author},
+    description = ${description},
+    updated_at = current_timestamp
+  WHERE id = ${id}
+  RETURNING *;
+`;
+
 
     console.log("book updated succesfully");
 
@@ -177,7 +186,7 @@ export async function PUT(request: Request) {
     );
   }
 }
-
+//! Delete a book
 export async function DELETE(request: Request) {
   try {
       const url = new URL(request.url);
@@ -204,7 +213,7 @@ export async function DELETE(request: Request) {
       );
     }
 
-    return new Response(JSON.stringify({ data: response[0] }), {
+    return new Response(JSON.stringify(response), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

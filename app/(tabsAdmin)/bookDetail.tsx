@@ -10,12 +10,14 @@ import {
 import { ImageBackground } from "react-native";
 import { Book } from "@/types/book";
 import { StackScreenProps } from "@react-navigation/stack";
+import { fetchAPI } from "@/lib/fetch";
+import EvilIcons from "@expo/vector-icons/EvilIcons";
 
 type RootStackParamList = {
   Home: undefined;
   BookDetail: { bookId: string };
   addBook: undefined;
-  editBook: { bookId: string };
+  ModifyBook: { book: Book };
 };
 
 type BookDetailProps = StackScreenProps<RootStackParamList, "BookDetail">;
@@ -34,11 +36,41 @@ const BookDetail: React.FC<BookDetailProps> = ({
   navigation,
 }: BookDetailProps) => {
   const [book, setBook] = useState<Book | null>(null);
+  const { setOpenBook }: any = route.params;
 
   useEffect(() => {
     const { book }: any = route.params;
     setBook(book);
   }, [route.params]);
+
+  const handleDeleteBook = async (id: any) => {
+    try {
+      const response = await fetchAPI(`/(api)/book?id=${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      setOpenBook(false);
+      navigation.goBack();
+    } catch (error) {
+      console.error("Error deleting book:", error);
+    }
+  };
+
+  const handleUpdateBook = async (id: string, updatedData: any) => {
+    try {
+      const response = await fetchAPI(`/(api)/book?id=${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedData),
+      });
+    } catch (error) {
+      console.error("Error deleting book:", error);
+    }
+  };
 
   if (!book) return null;
 
@@ -116,11 +148,25 @@ const BookDetail: React.FC<BookDetailProps> = ({
 
       {/* Bottom Buttons */}
       <View style={styles.bottomButtons}>
-        <TouchableOpacity style={styles.bookmarkButton}>
-          <Text style={styles.bookmarkIcon}>🔖</Text>
+        <TouchableOpacity
+          onPress={() => {
+            navigation.navigate("ModifyBook", { book });
+          }}
+          style={styles.bookmarkButton}
+        >
+          <Image
+            source={require("../../assets/icons/edit.png")}
+            className="h-7 w-7"
+            tintColor={"white"}
+          />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.startReadingButton}>
-          <Text style={styles.startReadingText}>Borrow Book</Text>
+        <TouchableOpacity
+          onPress={() => {
+            handleDeleteBook(book.id);
+          }}
+          style={styles.startReadingButton}
+        >
+          <Text style={styles.startReadingText}>Supprimer</Text>
         </TouchableOpacity>
       </View>
     </View>

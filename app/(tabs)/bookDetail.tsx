@@ -10,6 +10,7 @@ import {
 import { ImageBackground } from "react-native";
 import { Book } from "@/types/book";
 import { useUser } from "@clerk/clerk-expo";
+import { fetchAPI } from "@/lib/fetch";
 
 type BookDetailProps = {
   route: {
@@ -34,13 +35,34 @@ type BookDetailProps = {
 
 const BookDetail: React.FC<BookDetailProps> = ({ route, navigation }) => {
   const [book, setBook] = useState<Book | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const { user } = useUser();
-  console.log(user?.id);
 
   useEffect(() => {
     const { book } = route.params;
     setBook(book);
   }, [route.params]);
+
+  const HandleBorrowBook = async (book: Book) => {
+    try {
+      const response = await fetchAPI("/(api)/booking/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clerk_id: user?.id,
+          book_id: book.id,
+          book_cover: book.book_cover,
+          book_name: book.book_name,
+          author: book.author,
+          page_no: book.page_no,
+        }),
+      });
+      alert("Book borrowed successfully.");
+      navigation.goBack();
+    } catch (error: any) {
+      alert("Failed to borrow book. " + error.message);
+    }
+  };
 
   if (!book) return null;
 
@@ -121,8 +143,23 @@ const BookDetail: React.FC<BookDetailProps> = ({ route, navigation }) => {
         <TouchableOpacity style={styles.bookmarkButton}>
           <Text style={styles.bookmarkIcon}>🔖</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.startReadingButton}>
-          <Text style={styles.startReadingText}>Borrow Book</Text>
+        <TouchableOpacity
+          style={[
+            styles.startReadingButton,
+            isLoading && { backgroundColor: "#808080" },
+          ]}
+          onPress={async () => {
+            setIsLoading(true);
+            try {
+              await HandleBorrowBook(book);
+            } finally {
+              setIsLoading(false);
+            }
+          }}
+        >
+          <Text style={styles.startReadingText}>
+            {isLoading ? "Loading..." : "Borrow Book"}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
